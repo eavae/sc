@@ -1,0 +1,31 @@
+{
+  "name": "sc",
+  "version": "0.0.1",
+  "description": "A simple compress tool for web developers.",
+  "keywords": [
+    "compress",
+    "jsmin",
+    "cssmin"
+  ],
+  "author": "Feng Weifeng <jpssff@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/psfe/sc"
+  },
+  "devDependencies": {
+    "should": ">= 0.0.1"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "main": "index",
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "commander": "~2.1.0"
+  },
+  "bin":{
+    "sc": "./bin/sc-cli"    
+  }
+}
