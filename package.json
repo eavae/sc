@@ -23,9 +23,15 @@
     "index.js"
   ],
   "dependencies": {
-    "commander": "~2.1.0"
+    "commander": "~2.1.0",
+    "progress": "~1.1.4",
+    "minimatch": "~0.2.14",
+    "underscore": "~1.6.0",
+    "uglify-js": "~2.4.13",
+    "Deferred": "~0.1.1",
+    "isbinaryfile": "~2.0.1"
   },
-  "bin":{
-    "sc": "./bin/sc-cli"    
+  "bin": {
+    "sc": "./bin/sc-cli"
   }
 }

@@ -8,7 +8,7 @@ var program = require('commander'),
 program
     .version(pkg.version)
     .usage('[options] [dir]')
-    .option('-b --build', 'build the dir')
+    .option('-b, --build', 'build the dir')
     .parse(process.argv);
 
 
