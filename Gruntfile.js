@@ -5,7 +5,7 @@ module.exports = function(grunt) {
         pkg: '<json:package.json>',
 
         clean: {
-            output: 'output'
+            output: 'build'
         },
 
         mkdirs: {
@@ -19,32 +19,43 @@ module.exports = function(grunt) {
                 },
 
                 files:[
-                    {
-                        expand: true,
-                        type: 'js',
-                        cwd: './src/',
-                        dest: './build/zh-CN/',
-                        src: ['**/*.js']
-                    },
-                    {
-                        expand: true,
-                        type: 'css',
-                        cwd: './src/',
-                        dest: './build/zh-CN/',
-                        src: ['**/*.css']
-                    },
+                    //{
+                    //    expand: true,
+                    //    type: 'js',
+                    //    cwd: './src/',
+                    //    dest: './build/zh-CN/',
+                    //    src: ['**/*.js'],
+                    //    filter: 'isFile'
+                    //},
+                    //{
+                    //    expand: true,
+                    //    type: 'css',
+                    //    cwd: './src/',
+                    //    dest: './build/zh-CN/',
+                    //    src: ['**/*.css'],
+                    //    filter: 'isFile'
+                    //},
                     {
                         expand: true,
                         type: 'tpl',
                         cwd: './src/',
                         dest: './build/zh-CN/',
-                        src: ['**/*.tpl']
-                    }
+                        src: ['**/*.tpl'],
+                        filter: 'isFile'
+                    }//,
+                    //{
+                    //    expand: true,
+                    //    type: 'default',
+                    //    cwd: './src/',
+                    //    dest: './build/zh-CN/',
+                    //    src: ['**/*', '!**/*.{js,css,less,tpl}', '!**/changelog.inc'],
+                    //    filter: 'isFile'
+                    //}
                 ]
             }
         }
     });
     grunt.loadTasks('task');
     grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.registerTask('default', ['sc-compress']);
+    grunt.registerTask('default', ['clean', 'sc-compress']);
 };
