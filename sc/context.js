@@ -48,7 +48,7 @@ exports.create = function(raw) {
                 oldIndex = index;
             if (typeof item === 'string') {
                 var i = leftRaw.indexOf(item);
-                index += i + (isBefore ? 0 : item.length);
+                index += (i + (isBefore ? 0 : item.length));
                 var s = raw.substring(oldIndex, index);
                 updateLine(s);
                 return s;
@@ -56,8 +56,8 @@ exports.create = function(raw) {
             else if (item instanceof RegExp) {
                 var value = (item.exec(leftRaw) || [''])[0];
                 if(value){
-                    var i = leftRaw.search(item);
-                    index += i + (isBefore ? 0 : value.length);
+                    var i = leftRaw.indexOf(value);
+                    index += (i + (isBefore ? 0 : value.length));
                     var s = raw.substring(oldIndex, index);
                     updateLine(s);
                     return s;

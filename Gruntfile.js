@@ -15,26 +15,33 @@ module.exports = function(grunt) {
         'sc-compress': {
             build: {
                 options: {
-
+                    js: {
+                        unused : false,
+                        side_effects: false,
+                        comparisons: false,
+                        conditionals: false,
+                        dead_code: false,
+                        booleans: false
+                    }
                 },
 
                 files:[
-                    //{
-                    //    expand: true,
-                    //    type: 'js',
-                    //    cwd: './src/',
-                    //    dest: './build/zh-CN/',
-                    //    src: ['**/*.js'],
-                    //    filter: 'isFile'
-                    //},
-                    //{
-                    //    expand: true,
-                    //    type: 'css',
-                    //    cwd: './src/',
-                    //    dest: './build/zh-CN/',
-                    //    src: ['**/*.css'],
-                    //    filter: 'isFile'
-                    //},
+                    {
+                       expand: true,
+                       type: 'js',
+                       cwd: './src/',
+                       dest: './build/zh-CN/',
+                       src: ['**/*.js'],
+                       filter: 'isFile'
+                    },
+                    {
+                       expand: true,
+                       type: 'css',
+                       cwd: './src/',
+                       dest: './build/zh-CN/',
+                       src: ['**/*.css'],
+                       filter: 'isFile'
+                    },
                     {
                         expand: true,
                         type: 'tpl',
@@ -42,15 +49,15 @@ module.exports = function(grunt) {
                         dest: './build/zh-CN/',
                         src: ['**/*.tpl'],
                         filter: 'isFile'
-                    }//,
-                    //{
-                    //    expand: true,
-                    //    type: 'default',
-                    //    cwd: './src/',
-                    //    dest: './build/zh-CN/',
-                    //    src: ['**/*', '!**/*.{js,css,less,tpl}', '!**/changelog.inc'],
-                    //    filter: 'isFile'
-                    //}
+                    },
+                    {
+                       expand: true,
+                       type: 'default',
+                       cwd: './src/',
+                       dest: './build/zh-CN/',
+                       src: ['**/*', '!**/*.{js,css,less,tpl}', '!**/changelog.inc'],
+                       filter: 'isFile'
+                    }
                 ]
             }
         }
