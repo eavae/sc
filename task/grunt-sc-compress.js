@@ -111,12 +111,12 @@ module.exports = function(grunt) {
         var js = "''";
         if(arrJs.length > 0) {
             js = 'A.merge("' + tplName + '",function(){' + arrJs.join(';') + '});';
-            js = js.replace('\\', '\\\\').replace('\'', '\\\'');
+            js = js.replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
             js = "'" + js + "'";
         }
         var css = "''";
         if (arrCss.length > 0) {
-            css = arrCss.join('').replace('\\', '\\\\').replace('\'', '\\\'');
+            css = arrCss.join('').replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
             css = "'" + css + "'";
         }
         var php = resTemplate

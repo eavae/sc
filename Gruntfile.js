@@ -12,6 +12,19 @@ module.exports = function(grunt) {
             output: 'output'
         },
 
+        'sc-checkphp': {
+            checkresphp: {
+                files: [
+                    {
+                      expand: true,
+                      cwd: './build/',
+                      src: ['**/res.php'],
+                      filter: 'isFile'
+                    }
+                ]
+            }
+        },
+
         'sc-compress': {
             build: {
                 options: {
@@ -36,32 +49,32 @@ module.exports = function(grunt) {
                       expand: true,
                       type: 'js',
                       cwd: './src/',
-                      dest: './build/zh-CN/',
                       src: ['**/*.js'],
+                      dest: './build/zh-CN/',
                       filter: 'isFile'
                     },
                     {
                       expand: true,
                       type: 'css',
                       cwd: './src/',
-                      dest: './build/zh-CN/',
                       src: ['**/*.css'],
+                      dest: './build/zh-CN/',
                       filter: 'isFile'
                     },
                     {
                         expand: true,
                         type: 'tpl',
                         cwd: './src/',
-                        dest: './build/zh-CN/',
                         src: ['**/*.tpl'],
+                        dest: './build/zh-CN/',
                         filter: 'isFile'
                     },
                     {
                       expand: true,
                       type: 'default',
                       cwd: './src/',
-                      dest: './build/zh-CN/',
                       src: ['**/*', '!**/*.{js,css,less,tpl}', '!**/changelog.inc'],
+                      dest: './build/zh-CN/',
                       filter: 'isFile'
                     }
                 ]
@@ -72,11 +85,14 @@ module.exports = function(grunt) {
     var startTime = new Date();
     grunt.registerTask('time', function(){
         var d = new Date();
-        var s = Math.ceil((d - startTime) / 1000) + 's';
-        console.log('total: ' + s);
+        var s = ((d - startTime) / 1000).toFixed(2) + 's';
+        grunt.log.writeln('total: ' + s);
     });
 
     grunt.loadTasks('task');
     grunt.loadNpmTasks('grunt-contrib-clean');
+
     grunt.registerTask('default', ['clean', 'sc-compress', 'time']);
+    grunt.registerTask('php', ['sc-checkphp', 'time']);
+    grunt.registerTask('all', ['default', 'sc-checkphp', 'time']);
 };
