@@ -89,7 +89,7 @@ module.exports = function(grunt) {
         grunt.log.writeln('total: ' + s);
     });
 
-    grunt.loadTasks('task');
+    grunt.loadTasks('sc/task');
     grunt.loadNpmTasks('grunt-contrib-clean');
 
     grunt.registerTask('default', ['clean', 'sc-compress', 'time']);

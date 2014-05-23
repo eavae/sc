@@ -4,7 +4,7 @@ var path = require('path');
 var uglify = require('uglify-js');
 var CleanCSS = require('clean-css');
 var less = require('less');
-var tplParser = require('../sc/simple_template_parser');
+var tplParser = require('../simple_template_parser');
 
 //debugger;
 
@@ -76,6 +76,20 @@ module.exports = function(grunt) {
     };
 
     /**
+     * 检查字符串中是否包含smarty语句
+     */
+    var hasSmarty = function(text){
+        return text.indexOf('{%') > -1 && text.indexOf('%}') > -1;
+    };
+
+    /**
+     * 将字符串替换成php字符串变量书写形式
+     */
+    var phpStringEncode = function(str){
+        return str.replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
+    };
+
+    /**
      * 将抽出的js、css、ui合并到php中
      */
     var resTemplate;
@@ -85,6 +99,9 @@ module.exports = function(grunt) {
         var tplName = path.basename(path.dirname(f.dest));
         var arrJs = [], arrCss = [], arrUI = [];
         mergeJs.forEach(function(item){
+            if (hasSmarty(item.text)) {
+                grunt.fail.warn('smarty syntax found in js-merge in ' + src + '');
+            }
             try{
                 item.text = compressJs(item.text, options.js);
             } catch(e) {
@@ -95,6 +112,9 @@ module.exports = function(grunt) {
             arrJs.push(item.text);
         });
         mergeCss.forEach(function(item){
+            if (hasSmarty(item.text)) {
+                grunt.fail.warn('smarty syntax found in css-merge in ' + src + '');
+            }
             try {
                 item.text = new CleanCSS().minify(item.text);
             } catch(e) {
@@ -106,18 +126,18 @@ module.exports = function(grunt) {
         });
         arrUI = grunt.util._.uniq(mergeUI);
         if(!resTemplate) {
-            resTemplate = grunt.file.read(__dirname + '/' + '../sc/data/res_template.php');
+            resTemplate = grunt.file.read(__dirname + '/' + '../data/res_template.php');
         }
         var js = "''";
         if(arrJs.length > 0) {
             js = 'A.merge("' + tplName + '",function(){' + arrJs.join(';') + '});';
-            js = js.replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
+            js = phpStringEncode(js);
             js = "'" + js + "'";
         }
         var css = "''";
         if (arrCss.length > 0) {
-            css = arrCss.join('').replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
-            css = "'" + css + "'";
+            css = arrCss.join('');
+            css = "'" + phpStringEncode(css) + "'";
         }
         var php = resTemplate
             .replace('%###%templateName%###%', tplName)
