@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 
 var uglify = require('uglify-js');
 var CleanCSS = require('clean-css');
@@ -6,7 +7,6 @@ var less = require('less');
 var tplParser = require('../sc/simple_template_parser');
 
 //debugger;
-
 
 module.exports = function(grunt) {
 
@@ -23,6 +23,9 @@ module.exports = function(grunt) {
         return err;
     };
 
+    /**
+     * 压缩js
+     */
     var compressJs = function(js, options){
         var code = '';
         var ast = uglify.parse(js);
@@ -33,6 +36,9 @@ module.exports = function(grunt) {
         return code;
     };
 
+    /**
+     * 获取html标签属性的映射map
+     */
     var getAttrMap = function(token){
         var map = {}, key, attrTokens = token.attrTokens || [];
         attrTokens.forEach(function(t){
@@ -47,29 +53,111 @@ module.exports = function(grunt) {
         return map;
     };
 
+    /**
+     * 去除css中的css ui组件，并返回干净的css文本和ui列表
+     */
+    var processCssUI = function(css){
+        var uis = [];
+        var re = /\{%fe_fn_c_css\s+css\s*=('|")\w+('|")\s*%\}/g;
+        var reUI = /('|")(\w+)('|")/;
+        var list = css.match(re);
+        if(list && list.length) {
+            list.forEach(function(s){
+                var name = reUI.exec(s)[2];
+                uis.push(name);
+            });
+        }
+        css = css.replace(re, '');
+        var result = {
+            'uis' : uis,
+            'css' : css
+        };
+        return result;
+    };
+
+    /**
+     * 将抽出的js、css、ui合并到php中
+     */
+    var resTemplate;
+    var writeResPhp = function(f, mergeJs, mergeCss, mergeUI, options){
+        var src = f.src;
+        var resPath = path.dirname(f.dest) + '/res.php';
+        var tplName = path.basename(path.dirname(f.dest));
+        var arrJs = [], arrCss = [], arrUI = [];
+        mergeJs.forEach(function(item){
+            try{
+                item.text = compressJs(item.text, options.js);
+            } catch(e) {
+                var err = createError(e, src, 'Compress js error', item.line);
+                grunt.log.warn('compress js in ' + src + ' failed.');
+                grunt.fail.warn(err);
+            }
+            arrJs.push(item.text);
+        });
+        mergeCss.forEach(function(item){
+            try {
+                item.text = new CleanCSS().minify(item.text);
+            } catch(e) {
+                var err = createError(e, src, 'Compress css failed');
+                grunt.log.warn('compress css ' + src + ' failed.');
+                grunt.fail.warn(err);
+            }
+            arrCss.push(item.text);
+        });
+        arrUI = grunt.util._.uniq(mergeUI);
+        if(!resTemplate) {
+            resTemplate = grunt.file.read(__dirname + '/' + '../sc/data/res_template.php');
+        }
+        var js = "''";
+        if(arrJs.length > 0) {
+            js = 'A.merge("' + tplName + '",function(){' + arrJs.join(';') + '});';
+            js = js.replace('\\', '\\\\').replace('\'', '\\\'');
+            js = "'" + js + "'";
+        }
+        var css = "''";
+        if (arrCss.length > 0) {
+            css = arrCss.join('').replace('\\', '\\\\').replace('\'', '\\\'');
+            css = "'" + css + "'";
+        }
+        var php = resTemplate
+            .replace('%###%templateName%###%', tplName)
+            .replace('%###%ui%###%', "'" + arrUI.join(',') + "'")
+            .replace('%###%css%###%', css)
+            .replace('%###%js%###%', js);
+        grunt.file.write(resPath, php);
+    };
+
     var compressTpl = function(f, options){
         var src = f.src[0], dest = f.dest;
         var source = grunt.file.read(src);
+
         var tokens = tplParser.parse(source);
-        //查看属性token
-        //tokens.forEach(function(t){
-        //   if(t.type.indexOf('HTML_TEXT') > -1) {
-        //       console.log(t.text);
-        //       console.log('-----');
-        //       //console.log(t.attrTokens);
-        //       console.log('\n');
-        //   }
-        //});
-        //return;
-        var result = [], scriptStartToken, styleStartToken;
+
+        var result = [], scriptStartToken, styleStartToken,
+            mergeJs = [], mergeCss = [], mergeUI = [],
+            needMergeJs = false, needMergeCss = false, attr;
+
         tokens.forEach(function(token){
             if(token.type === 'HTML_SCRIPT_START') {
                 scriptStartToken = token;
+                attr = getAttrMap(scriptStartToken);
+                if(options.tpl.mergeJs && attr.hasOwnProperty('data-merge')){
+                    needMergeJs = true;
+                }
+                else {
+                    needMergeJs = false;
+                }
+                if (!needMergeJs) {
+                    result.push(token.text);
+                }
             }
             else if(token.type === 'HTML_SCRIPT_CONTENT') {
                 var js = token.text;
-                var attr = getAttrMap(scriptStartToken);
-                if(attr['data-compress'] !== 'off') {
+                if(needMergeJs){
+                    mergeJs.push({text:js, line:token.line});
+                    js = ''
+                }
+                else if(options.tpl.compressJs && attr['data-compress'] !== 'off') {
                     try{
                         js = compressJs(js, options.js);
                         //console.log(js);
@@ -81,13 +169,33 @@ module.exports = function(grunt) {
                 }
                 result.push(js);
             }
+            else if (token.type === 'HTML_SCRIPT_END') {
+                if (!needMergeJs) {
+                    result.push(token.text);
+                }
+            }
             else if(token.type === 'HTML_STYLE_START') {
                 styleStartToken = token;
+                attr = getAttrMap(styleStartToken);
+                if(options.tpl.mergeCss && attr.hasOwnProperty('data-merge')) {
+                    needMergeCss = true;
+                }
+                else{
+                    needMergeCss = false;
+                }
+                if (!needMergeCss) {
+                    result.push(token.text);
+                }
             }
             else if(token.type === 'HTML_STYLE_CONTENT') {
-                var css = token.text.replace(/\{%[\w\W]*?%\}/g, '');
-                var attr = getAttrMap(styleStartToken);
-                if (attr['data-compress'] !== 'off') {
+                var css = token.text;
+                if(needMergeCss) {
+                    var processdCssData = processCssUI(css);
+                    mergeCss.push({text:processdCssData.css, line:token.line});
+                    mergeUI.push.apply(mergeUI, processdCssData.uis);
+                    css = '';
+                }
+                else if (options.tpl.compressCss && attr['data-compress'] !== 'off') {
                     try {
                         css = new CleanCSS().minify(css);    
                     } catch(e) {
@@ -99,11 +207,17 @@ module.exports = function(grunt) {
                 }
                 result.push(css);
             }
+            else if (token.type === 'HTML_STYLE_END') {
+                if (!needMergeCss) {
+                    result.push(token.text);
+                }
+            }
             else{
                 result.push(token.text);
             }
         });
         grunt.file.write(dest, result.join(''));
+        writeResPhp(f, mergeJs, mergeCss, mergeUI, options);
         grunt.log.ok('compress tpl ok: ' + dest);
     };
 
@@ -157,5 +271,4 @@ module.exports = function(grunt) {
             }
         });
     });
-
 };
