@@ -27,7 +27,8 @@
     "grunt-contrib-clean": "~0.5.0",
     "uglify-js": "~2.4.13",
     "node-minify": "~0.10.3",
-    "clean-css": "~2.1.8"
+    "clean-css": "~2.1.8",
+    "less": "~1.7.4"
   },
   "bin": {
     "sc": "./bin/sc-cli"
