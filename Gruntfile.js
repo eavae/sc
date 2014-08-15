@@ -1,5 +1,10 @@
 module.exports = function(grunt) {
 
+    var path = grunt.option('path') || '.';
+    var srcpath = '**/';
+    if(grunt.option('template')){
+      srcpath = '**/' + grunt.option('template') + '/';
+    }
     // Project configuration.
     grunt.initConfig({
         pkg: '<json:package.json>',
@@ -17,8 +22,8 @@ module.exports = function(grunt) {
                 files: [
                     {
                       expand: true,
-                      cwd: './build/',
-                      src: ['**/res.php'],
+                      cwd: path + '/build/',
+                      src: [srcpath+'res.php'],
                       filter: 'isFile'
                     }
                 ]
@@ -48,33 +53,33 @@ module.exports = function(grunt) {
                     {
                       expand: true,
                       type: 'js',
-                      cwd: './src/',
-                      src: ['**/*.js'],
-                      dest: './build/zh-CN/',
+                      cwd: path + '/src/',
+                      src: [srcpath+'*.js'],
+                      dest: path + '/build/zh-CN/',
                       filter: 'isFile'
                     },
                     {
                       expand: true,
                       type: 'css',
-                      cwd: './src/',
-                      src: ['**/*.css'],
-                      dest: './build/zh-CN/',
+                      cwd: path + '/src/',
+                      src: [srcpath+'*.css'],
+                      dest: path + '/build/zh-CN/',
                       filter: 'isFile'
                     },
                     {
                         expand: true,
                         type: 'tpl',
-                        cwd: './src/',
-                        src: ['**/*.tpl'],
-                        dest: './build/zh-CN/',
+                        cwd: path + '/src/',
+                        src: [srcpath+'*.tpl'],
+                        dest: path + '/build/zh-CN/',
                         filter: 'isFile'
                     },
                     {
                       expand: true,
                       type: 'default',
-                      cwd: './src/',
-                      src: ['**/*', '!**/*.{js,css,less,tpl}', '!**/changelog.inc'],
-                      dest: './build/zh-CN/',
+                      cwd: path + '/src/',
+                      src: [srcpath+'*', '!'+srcpath+'*.{js,css,less,tpl}', '!'+srcpath+'changelog.inc'],
+                      dest: path + '/build/zh-CN/',
                       filter: 'isFile'
                     }
                 ]
@@ -95,4 +100,5 @@ module.exports = function(grunt) {
     grunt.registerTask('default', ['clean', 'sc-compress', 'time']);
     grunt.registerTask('php', ['sc-checkphp', 'time']);
     grunt.registerTask('all', ['default', 'sc-checkphp', 'time']);
+    grunt.registerTask('single', ['sc-compress', 'sc-checkphp', 'time']);
 };
